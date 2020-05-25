@@ -12,13 +12,13 @@
 //!
 //! I would not have managed to write this code without the ideas that I shamelessly stole from
 //! [accel](https://github.com/termoshtt/accel/).
-#![feature(proc_macro)]
-#![recursion_limit = "256"]
+//#![feature(proc_macro)]
+//#![recursion_limit = "256"]
 
-#[macro_use]
+/*#[macro_use]
 extern crate futures_await_quote as quote;
 extern crate futures_await_syn as syn;
-extern crate proc_macro;
+extern crate proc_macro;*/
 
 use proc_macro::TokenStream;
 use syn::*;
@@ -97,7 +97,7 @@ fn function_persistenticator(func: &Function) -> TokenStream {
     let pers_func = quote!{
         #vis #fn_token #ident(#inputs) #output
         {
-            extern crate bincode;
+            //extern crate bincode;
             use std::hash::{Hash, Hasher};
             lazy_static!{
                 static ref S: ::std::sync::Mutex<#storage> = ::std::sync::Mutex::new(#storage::new(#path).unwrap());
@@ -124,12 +124,12 @@ fn function_persistenticator(func: &Function) -> TokenStream {
                 0 => {
                     // Computing and storing the value
                     let res = #block;
-                    S.lock().unwrap().set(&var_name, &bincode::serialize(&res).unwrap()).unwrap();
+                    S.lock().unwrap().set(&var_name, &$crate::persistentcache::bincode::serialize(&res).unwrap()).unwrap();
                     return res;
                 },
                 _ => {
                     // Fetching the value
-                    return bincode::deserialize(&result).unwrap()
+                    return $crate::persistentcache::bincode::deserialize(&result).unwrap()
                 },
             };
         }

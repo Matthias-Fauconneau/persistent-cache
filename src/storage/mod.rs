@@ -15,7 +15,7 @@ pub mod file_memory;
 /// `RedisStorage`
 pub mod redis;
 
-pub use storage::file::FileStorage;
-pub use storage::file_memory::FileMemoryStorage;
+pub use file::FileStorage;
+pub use file_memory::FileMemoryStorage;
 /// Bring them into scope
-pub use storage::redis::RedisStorage;
+pub use self::redis::RedisStorage;

@@ -2,6 +2,7 @@
 name = "persistentcache"
 version = "0.1.6"
 authors = ["Stefan Kroboth <stefan.kroboth@gmail.com>"]
+edition =  "2018"
 license = "MIT/Apache-2.0"
 description = "Macros for persistently caching function calls using files or Redis"
 documentation = "https://stefan-k.github.io/rust/persistentcache/"
@@ -11,7 +12,7 @@ readme = "README.md"
 keywords = ["persistent", "caching", "science", "HPC", "memoization"]
 categories = ["caching", "science"]
 # license-file = "LICENSE-APACHE"
-exclude = [ 
+exclude = [
 	".travis.yml",
 	"push_docs",
 ]

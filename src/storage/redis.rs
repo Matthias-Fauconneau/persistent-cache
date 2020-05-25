@@ -8,13 +8,13 @@
 //! # RedisStorage
 //!
 //! Storage for persistently saving return values of functions in Redis.
-use errors::*;
+use crate::errors::*;
 use redis::{self, Commands};
-use std::error::Error;
+//use std::error::Error;
 
-use PersistentCache;
+use crate::PersistentCache;
 #[allow(unused_imports)]
-use PREFIX;
+use crate::PREFIX;
 
 /// `RedisStorage` struct holds a `redis::Connection` variable.
 pub struct RedisStorage {
@@ -58,7 +58,7 @@ impl PersistentCache for RedisStorage {
         Ok(())
     }
 
-    /// Delete all variables stored in the Redis database which start with `PREFIX_`.
+    /*/// Delete all variables stored in the Redis database which start with `PREFIX_`.
     fn flush(&mut self) -> Result<()> {
         let iter: redis::Iter<String> = redis::cmd("KEYS")
             .arg(format!("{}_*", PREFIX))
@@ -78,5 +78,5 @@ impl PersistentCache for RedisStorage {
             r?;
         }
         Ok(())
-    }
+    }*/
 }

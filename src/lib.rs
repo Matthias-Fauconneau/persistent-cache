@@ -239,23 +239,21 @@
 //! [accel](https://github.com/termoshtt/accell) has been very helpful. I shamelessly copied parts
 //! of it for the `persistentcache_procmacro` crate.
 //!
-#![recursion_limit = "1024"]
-#![allow(unused_imports)]
+//#![recursion_limit = "1024"]
+//#![allow(unused_imports)]
 #![warn(missing_docs)]
-#![feature(proc_macro_hygiene)]
-#[macro_use]
-extern crate error_chain;
-extern crate fs2;
-#[macro_use]
-extern crate lazy_static;
-extern crate persistentcache_procmacro;
-extern crate redis;
-extern crate regex;
+//#![feature(proc_macro_hygiene)]
+//#[macro_use] extern crate error_chain;
+//extern crate fs2;
+//#[macro_use] extern crate lazy_static;
+//extern crate persistentcache_procmacro;
+//extern crate redis;
+//extern crate regex;
 
-use persistentcache_procmacro::persistent_cache;
+pub use persistentcache_procmacro::persistent_cache;
 
 mod errors {
-    error_chain! {
+    error_chain::error_chain! {
         foreign_links {
             Redis(::redis::RedisError);
             Regex(::regex::Error);
@@ -278,11 +276,11 @@ pub const PREFIX: &str = "pc";
 /// Traits which need to be implemented by any storage
 pub trait PersistentCache {
     /// Return serialized value of variable
-    fn get(&mut self, &str) -> Result<Vec<u8>>;
+    fn get(&mut self, _: &str) -> Result<Vec<u8>>;
     /// Set serialized value of variable
-    fn set(&mut self, &str, &[u8]) -> Result<()>;
-    /// Flush storage
-    fn flush(&mut self) -> Result<()>;
+    fn set(&mut self, _: &str, _: &[u8]) -> Result<()>;
+    ///// Flush storage
+    //fn flush(&mut self) -> Result<()>;
 }
 
 #[cfg(test)]

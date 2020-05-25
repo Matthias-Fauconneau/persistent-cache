@@ -12,23 +12,23 @@
 //! HashMap, it will be retreived from there, otherwise it will be retreived from disk.
 //! Once a value is retreived from disk, it is also stored in the HashMap.
 
-use errors::*;
+use crate::errors::*;
 use fs2::FileExt;
-use regex::Regex;
+//use regex::Regex;
 use std::collections::HashMap;
-use std::error::Error;
-use std::fs::{create_dir_all, read_dir, remove_file, File};
+//use std::error::Error;
+use std::fs::{create_dir_all, /*read_dir, remove_file,*/ File};
 use std::io::prelude::*;
 use std::path::Path;
 
-use PersistentCache;
+use crate::PersistentCache;
 #[allow(unused_imports)]
-use PREFIX;
+use crate::PREFIX;
 
 /// `FileMemoryStorage` struct
 pub struct FileMemoryStorage {
     /// Indicates where files are saved
-    path: String,
+    path: std::path::PathBuf,
     /// HashMap storing all values alongside the disk
     mem: HashMap<String, Vec<u8>>,
 }
@@ -43,10 +43,10 @@ impl FileMemoryStorage {
     ///
     /// let mut s = FileMemoryStorage::new(".example_dir").unwrap();
     /// ```
-    pub fn new(path: &str) -> Result<Self> {
-        create_dir_all(path)?;
+    pub fn new(path: std::path::PathBuf) -> Result<Self> {
+        create_dir_all(&path)?;
         Ok(FileMemoryStorage {
-            path: path.to_owned(),
+            path,
             mem: HashMap::new(),
         })
     }
@@ -60,7 +60,7 @@ impl PersistentCache for FileMemoryStorage {
         if self.mem.contains_key(&name.to_string()) {
             Ok(self.mem.get(&name.to_string()).unwrap().clone())
         } else {
-            let fpath = format!("{}/{}", self.path, name);
+            let fpath = self.path.join(name);
             let p = Path::new(&fpath);
             let mut file = match File::open(&p) {
                 Err(_) => return Ok(vec![]),
@@ -89,7 +89,7 @@ impl PersistentCache for FileMemoryStorage {
         self.mem.insert(name.to_string(), val.to_vec());
 
         // Write to file
-        let fpath = format!("{}/{}", self.path, name);
+        let fpath = self.path.join(name);
         let p = Path::new(&fpath);
         let mut file = match File::create(&p) {
             Err(e) => return Err(e.into()),
@@ -102,7 +102,7 @@ impl PersistentCache for FileMemoryStorage {
         Ok(())
     }
 
-    /// Delete all variables stored in `path` (see `new()`) which start with `PREFIX_`.
+    /*/// Delete all variables stored in `path` (see `new()`) which start with `PREFIX_`.
     fn flush(&mut self) -> Result<()> {
         // clear memory
         self.mem.clear();
@@ -123,5 +123,5 @@ impl PersistentCache for FileMemoryStorage {
             }
         }
         Ok(())
-    }
+    }*/
 }
