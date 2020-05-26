@@ -8,22 +8,15 @@
 //! # RedisStorage
 //!
 //! Storage for persistently saving return values of functions in Redis.
-use crate::errors::*;
-use redis::{self, Commands};
-//use std::error::Error;
-
-use crate::PersistentCache;
-#[allow(unused_imports)]
-use crate::PREFIX;
+use {crate::PersistentCache, anyhow::Result, redis::{self, Commands}};
 
 /// `RedisStorage` struct holds a `redis::Connection` variable.
 pub struct RedisStorage {
-    con: redis::Connection,
+    connection: redis::Connection,
 }
 
 impl RedisStorage {
-    /// Connects to the Redis server listening at `host` and constructs a new `RedisStorage`
-    /// struct.
+    /// Connects to the Redis server listening at `host` and constructs a new `RedisStorage` struct.
     ///
     /// This will fail in case there is no redis server running.
     ///
@@ -36,15 +29,15 @@ impl RedisStorage {
     /// ```
     pub fn new(host: &str) -> Result<Self> {
         let client = redis::Client::open(host)?;
-        let con = client.get_connection()?;
-        Ok(RedisStorage { con })
+        let connection = client.get_connection()?;
+        Ok(RedisStorage { connection })
     }
 }
 
 impl PersistentCache for RedisStorage {
     /// Returns the value within the Redis variable `name`.
     fn get(&mut self, name: &str) -> Result<Vec<u8>> {
-        match self.con.get(name) {
+        match self.connection.get(name) {
             Ok(res) => Ok(res),
             Err(e) => Err(e.into()),
         }
@@ -53,7 +46,7 @@ impl PersistentCache for RedisStorage {
     /// Sets the Redis variable `name` to the array `val` of type `&[u8]`.
     fn set(&mut self, name: &str, val: &[u8]) -> Result<()> {
         // Yes, this is weird.
-        let r: Result<()> = self.con.set(name, val).map_err(|e| e.into());
+        let r: Result<()> = self.connection.set(name, val).map_err(|e| e.into());
         r?;
         Ok(())
     }
@@ -63,7 +56,7 @@ impl PersistentCache for RedisStorage {
         let iter: redis::Iter<String> = redis::cmd("KEYS")
             .arg(format!("{}_*", PREFIX))
             .clone()
-            .iter(&mut self.con)?;
+            .iter(&mut self.connection)?;
         let cmd: &mut redis::Cmd = &mut redis::cmd("DEL");
         // Not a very good looking hack, but I dont know how to figure out whether the iterator is
         // empty or not...
@@ -73,7 +66,7 @@ impl PersistentCache for RedisStorage {
             cmd.arg(bla);
         }
         if flushed_vars > 0 {
-            let r: Result<()> = cmd.query(&mut self.con).map_err(|e| e.into());
+            let r: Result<()> = cmd.query(&mut self.connection).map_err(|e| e.into());
             // This is weird.
             r?;
         }

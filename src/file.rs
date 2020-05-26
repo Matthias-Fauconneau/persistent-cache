@@ -9,17 +9,7 @@
 //!
 //! Storage for persistently saving return values of functions on disk.
 //! This does not cache data in memory, only on disk!
-use crate::errors::*;
-use fs2::FileExt;
-//use regex::Regex;
-//use std::error::Error;
-use std::fs::{create_dir_all, /*read_dir, remove_file,*/ File};
-use std::io::prelude::*;
-use std::path::Path;
-
-use crate::PersistentCache;
-#[allow(unused_imports)]
-use crate::PREFIX;
+use {crate::PersistentCache, std::{path::Path, fs::{create_dir_all, File}, io::prelude::*}, fs2::FileExt, anyhow::Result};
 
 /// `FileStorage` struct
 pub struct FileStorage {
@@ -83,23 +73,4 @@ impl PersistentCache for FileStorage {
         file.unlock()?;
         Ok(())
     }
-
-    /*/// Delete all variables stored in `path` (see `new()`) which start with `PREFIX_`.
-    fn flush(&mut self) -> Result<()> {
-        let p = Path::new(&self.path);
-        match read_dir(p) {
-            Err(e) => return Err(e.into()),
-            Ok(iterator) => {
-                let re = Regex::new(&format!(r"^{}/{}_", self.path, PREFIX))?;
-                for file in iterator {
-                    let tmp = file?.path();
-                    let f = tmp.to_str().unwrap();
-                    if re.is_match(f) {
-                        remove_file(f)?
-                    }
-                }
-            }
-        }
-        Ok(())
-    }*/
 }

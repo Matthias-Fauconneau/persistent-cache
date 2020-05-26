@@ -11,19 +11,8 @@
 //! This storage also stores the data in a HashMap in memory. If the data is available in the
 //! HashMap, it will be retreived from there, otherwise it will be retreived from disk.
 //! Once a value is retreived from disk, it is also stored in the HashMap.
-
-use crate::errors::*;
-use fs2::FileExt;
-//use regex::Regex;
+use {crate::PersistentCache, std::{path::Path, fs::{create_dir_all, File}, io::prelude::*}, fs2::FileExt, anyhow::Result};
 use std::collections::HashMap;
-//use std::error::Error;
-use std::fs::{create_dir_all, /*read_dir, remove_file,*/ File};
-use std::io::prelude::*;
-use std::path::Path;
-
-use crate::PersistentCache;
-#[allow(unused_imports)]
-use crate::PREFIX;
 
 /// `FileMemoryStorage` struct
 pub struct FileMemoryStorage {
@@ -101,27 +90,4 @@ impl PersistentCache for FileMemoryStorage {
         file.unlock()?;
         Ok(())
     }
-
-    /*/// Delete all variables stored in `path` (see `new()`) which start with `PREFIX_`.
-    fn flush(&mut self) -> Result<()> {
-        // clear memory
-        self.mem.clear();
-
-        // remove files
-        let p = Path::new(&self.path);
-        match read_dir(p) {
-            Err(e) => return Err(e.into()),
-            Ok(iterator) => {
-                let re = Regex::new(&format!(r"^{}/{}_", self.path, PREFIX))?;
-                for file in iterator {
-                    let tmp = file?.path();
-                    let f = tmp.to_str().unwrap();
-                    if re.is_match(f) {
-                        remove_file(f)?
-                    }
-                }
-            }
-        }
-        Ok(())
-    }*/
 }
