@@ -1,16 +1,15 @@
 [package]
-name = "persistent-cache"
-version = "0.2.0"
-authors = ["Stefan Kroboth <stefan.kroboth@gmail.com>", "Matthias Fauconneau <matthiass.fauconneau@gmail.com"]
+name = 'persistent-cache'
+version = "0.0.0"
+authors = ["Matthias Fauconneau <matthiass.fauconneau@gmail.com"]
 edition =  "2018"
-license = "MIT"
-description = "Persistent cache using files or Redis"
+description = "Persistent cache using files"
 
 [dependencies]
-anyhow = "1.0.31"
-serde = "1.0.110"
-bincode = "1.2.1"
-lazy_static = "1.4.0"
-dirs = "2.0.2"
-redis = "0.16.0"
-fs2 = "0.4.3"
+fehler = ''
+anyhow = ''
+log = ''
+serde = ''
+bincode = ''
+lazy_static = ''
+dirs = ''

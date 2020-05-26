@@ -8,31 +8,44 @@ pub fn key<Args:std::hash::Hash>(args: &Args) -> String {
     format!("{:?}", s.finish())
 }
 
-use {anyhow::{Error, Result}, std::ops::Try};
+use {fehler::throws, anyhow::{Error, Result}, std::ops::Try};
 
 pub trait PersistentCache {
-    fn get(&mut self, _: &str) -> Result<Vec<u8>>;
-    fn set(&mut self, _: &str, _: &[u8]) -> Result<()>;
-    fn remove(&mut self, _: &str) -> Result<()> { anyhow::bail!("unimplemented"); }
+    #[throws(std::io::Error)] fn read(&mut self, key: &str) -> Vec<u8>;
+    #[allow(redundant_semicolons)] #[throws(std::io::Error)] fn write(&mut self, _key: &str, _value: &[u8]);
+    #[allow(unreachable_code)] #[throws] fn remove(&mut self, _: &str) { anyhow::bail!("unimplemented") }
     //fn flush(&mut self) -> Result<()>;
 
     fn cache<Args:std::hash::Hash,F:Fn<Args>>(&mut self, function: F, args: Args) -> Result<<F::Output as Try>::Ok> where F::Output:Try, <F::Output as Try>::Ok: serde::Serialize+serde::de::DeserializeOwned, Error:From<<F::Output as Try>::Error>, <F::Output as Try>::Error:ToString {
         let key = key(&args);
-        let result: Vec<u8> = self.get(&key).unwrap();
-        match result.len() {
-            0 => {
+        match self.read(&key) {
+            Ok(result) => {
+                log::trace!("read {}", key);
+                bincode::deserialize::<Result<<F::Output as Try>::Ok, String>>(&result)?.map_err(Error::msg)
+            },
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
+                log::trace!("evaluate {}", key);
                 let result = function.call(args).into_result();
-                self.set(&key, &bincode::serialize::<Result<&<F::Output as Try>::Ok, String>>(&result.as_ref().map_err(std::string::ToString::to_string)).unwrap()).unwrap();
+                self.write(&key, &bincode::serialize::<Result<&<F::Output as Try>::Ok, String>>(&result.as_ref().map_err(std::string::ToString::to_string))?)?;
+                log::trace!("write {}", key);
                 Ok(result?)
             },
-            _ => bincode::deserialize::<Result<<F::Output as Try>::Ok, String>>(&result).unwrap().map_err(Error::msg),
+            Err(e) => Err(e)?,
         }
     }
 }
 
-mod file; pub use file::FileStorage;
-mod file_memory; pub use file_memory::FileMemoryStorage;
-mod redis; pub use self::redis::RedisStorage;
+pub struct FileStorage { path: std::path::PathBuf }
+impl FileStorage {
+    #[throws] pub fn new(path: std::path::PathBuf) -> Self {
+        std::fs::create_dir_all(&path)?;
+        FileStorage{path}
+    }
+}
+impl PersistentCache for FileStorage {
+    #[throws(std::io::Error)] fn read(&mut self, key: &str) -> Vec<u8> { log::trace!("read {:?}", self.path.join(key)); std::fs::read(&self.path.join(key))? }
+    #[throws(std::io::Error)] fn write(&mut self, key: &str, value: &[u8])  { std::fs::write(&self.path.join(key), value)? }
+}
 
 lazy_static::lazy_static!{ pub static ref tmp: std::path::PathBuf = std::env::temp_dir(); }
 lazy_static::lazy_static!{ pub static ref home: std::path::PathBuf = dirs::cache_dir().unwrap(); }
